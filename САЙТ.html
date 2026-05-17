@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicList Weeknd</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #050505;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -10%;
+            right: -10%;
+            width: 1000px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(255, 0, 0, 0.15) 0%, transparent 70%);
+            z-index: 0;
+            filter: blur(80px);
+        }
+
+        /* Меню */
+        nav {
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            padding: 1.5rem 5%;
+            gap: 40px; 
+            position: relative;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: fixed;    /* Оставляем на экране при скролле */
+            top: 0;             /* Прижимаем к верху */
+            left: 0;            /* От левого края */
+            width: 100%;        /* На всю ширину */
+            z-index: 9999;
+            border-radius: 30px;
+        }
+
+        .logo { 
+            position: absolute; 
+            left: 5%;
+            font-weight: 800; 
+            letter-spacing: 4px; 
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+            align-items: center;
+        }
+
+        .nav-links a { 
+            color: white; 
+            text-decoration: none; 
+            font-size: 1.1rem; 
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.3s;
+            opacity: 0.6; 
+        }
+
+        .nav-links a:hover { 
+            opacity: 1; 
+            text-shadow: 0 0 15px rgba(255,255,255,0.5); 
+        }
+
+        /* Кнопка биографии */
+        .bio-btn {
+            padding: 8px 20px;
+            border: 1.8px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            cursor: default;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 0 10%;
+        }
+
+        .hero-text {
+        max-width: 450px;
+        user-select: none;
+        margin-top: 200px; 
+}
+
+        .hero-text h1 { font-size: 4rem; margin: 0; text-transform: uppercase; }
+
+        .player-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    padding: 2rem;
+    border-radius: 30px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+    position: absolute; 
+    right: 10%;
+    top: 15%;
+    width: 350px;           /* менять размер всего плеера */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+        .player-card:active { cursor: grabbing; }
+
+        .cover-art {
+            width: 80%;
+            aspect-ratio: 1/1;
+            height: auto;
+            border-radius: 20px;
+            margin: 0 auto 1.5rem;
+            background: url('679a80f (1).jpg') center/cover;
+            transition: transform 0.4s ease;
+            pointer-events: none;
+        }
+
+        .playing .cover-art { transform: scale(1.05); }
+
+        #play-btn {
+            background: rgb(255, 255, 255); color: black;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2.rem; cursor: pointer;
+        }
+
+        .progress-container {
+    margin-top: 25px; 
+    width: 100%; 
+    height: 5px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px; 
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    /*плавность (0.4 секунды) */
+    transition: height 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+        .paused-mode .progress-container { height: 10px; }
+
+        .progress-bar {
+            width: 0%; height: 100%;
+            background: rgba(255, 116, 116, 0.527); border-radius: 5px; position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute; right: -5px; top: 50%;
+            transform: translateY(-50%);
+            width: 15px; height: 15px;
+            background: rgb(255, 255, 255); border-radius: 50%;
+        }
+body { overflow-y: auto !important; }
+
+.scroll-section {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10%;
+}
+
+.content-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 100px;
+    width: 100%;
+    padding-right: 15%; 
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1s ease-out;
+}
+
+.content-wrapper.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.text-block {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.text-block h3 { font-size: 2rem; margin: 0; text-transform: uppercase; letter-spacing: 3px; }
+.text-block p { color: #666; margin-top: 10px; font-size: 1.1rem; text-align: right;  }
+
+.upload-zone {
+    flex: 1;
+}
+
+.upload-zone label {
+    padding: 20px 40px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 15px;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 2px;
+    transition: 0.3s;
+}
+
+.upload-zone label:hover {
+    background: white;
+    color: black;
+}
+
+        .resizer {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.1) 50%);
+            border-radius: 0 0 30px 0;
+        }
+
+        .controls { display: flex; justify-content: center; gap: 20px; align-items: center; }
+        .controls button { background: none; border: none; color: white; cursor: pointer; font-size: 1.5rem; }
+        .bottom-section, .bio-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 50px 0;
+    position: relative;
+}
+
+.glass-panel {
+    margin-top: 200px;
+    display: flex;
+    flex-direction: column;
+    text-align: center; 
+    align-items: center;
+    justify-content: space-between;
+    width: 85%;
+    max-width: 1100px;
+    padding: 40px 60px;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 40px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 85%;
+    max-width: 1000px;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 1.0s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.glass-panel.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.info-side h2 {
+    font-size: 2.2rem;
+    margin: 0;
+    letter-spacing: 4px;
+    font-weight: 700;
+}
+
+.info-side p {
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 15px;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Секция видео */
+.video-placeholder {
+    width: 580px;
+    height: 360px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+#bg-video {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.bio-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 30px 0;
+    margin-top: -150px;
+}
+
+.bio-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 50px;
+}
+
+/* Заголовок биографии */
+.bio-title {
+    font-size: 2.2rem;
+    margin: 0 0 20px 0;
+    letter-spacing: 5px;
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.bio-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 600px;
+}
+html {
+    scroll-behavior: smooth;
+}
+
+.merch-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 100px 0;
+}
+
+.merch-container {
+    width: 85%;
+    max-width: 1200px;
+}
+
+.merch-title {
+    font-size: 2.5rem;
+    letter-spacing: 5px;
+    margin-bottom: 50px;
+    text-align: center;
+    font-weight: 900;
+}
+
+.merch-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 колонки в ряд */
+    gap: 30px;
+}
+
+/* Стиль карточки как на Wildberries, но матовый */
+.merch-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 25px;
+    padding: 15px;
+    transition: 0.3s;
+    text-align: left;
+}
+
+.merch-card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.product-img {
+    width: 100%;
+    aspect-ratio: 3/4; /* Вертикальный формат как на WB */
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.product-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.product-price {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 10px 0;
+    color: #fff;
+}
+
+.buy-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(202, 202, 202, 0.48);
+    color: black;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.buy-btn:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+a, a:visited, a:hover, a:active {
+    text-decoration: none !important;
+    color: inherit !important; /* Берет цвет текста родителя (белый) */
+}
+
+nav a {
+    color: rgb(214, 214, 214) !important;
+    opacity: 0.6;
+    transition: 0.3s;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+nav a:hover {
+    opacity: 1; /* Оживает при наведении */
+}
+
+/* Адаптивность для телефонов */
+@media (max-width: 1024px) {
+    .merch-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .merch-grid { grid-template-columns: 1fr; }
+}
+
+
+.tour-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 80px 0;
+    margin-top: -250px;
+}
+
+.tour-grid {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.tour-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 30px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: 0.3s;
+}
+
+.tour-item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.01);
+}
+
+.tour-date {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #801717; /* Красный акцент в стиле альбома */
+    min-width: 100px;
+}
+
+.tour-city {
+    flex: 1;
+    margin-left: 20px;
+}
+
+.tour-city h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.tour-city p {
+    margin: 5px 0 0;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+}
+
+.ticket-btn {
+    text-decoration: none;
+    color: black;
+    background: rgb(146, 146, 146);
+    padding: 10px 25px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    transition: 0.3s;
+}
+
+.ticket-btn:hover {
+    background: #842929a3;
+    color: rgb(151, 151, 151);
+}
+
+.ticket-btn.sold-out {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none; /* Кнопка не нажимается */
+}
+
+.hero-section {
+    display: flex;
+    justify-content: space-between; /* Расталкивает текст влево, плеер вправо */
+    align-items: center;            /* Центрирует их по высоте */
+    max-width: 1200px;              /* Ширина контента */
+    margin: 150px auto 50px;        /* Отступ сверху (под меню) и центровка всего блока */
+    padding: 0 5%;
+    gap: 40px;                      /* Расстояние между текстом и плеером */
+}
+
+/* Контейнер, который ставит текст слева, а плеер справа */
+.hero-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 150px auto 100px; /* Отступ сверху под меню */
+    padding: 0 5%;
+    gap: 50px;
+}
+
+/* Настройка текста */
+.hero-text {
+    flex: 1;
+    text-align: left;
+}
+
+/* Настройка плеера (убираем absolute!) */
+.player-card {
+    position: relative; 
+    width: 350px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 25px;
+    padding: 25px;
+    right: -50%;           /* Отступ от ПРАВОГО края (чем больше %, тем левее плеер) */
+    top: 90px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box; /* Важно: чтобы padding не раздувал плеер */
+    z-index: 100;      
+}
+
+/* Стили для выдвижного списка */
+.playlist-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+}
+
+.playlist-wrapper.open {
+    max-height: 400px; /* Высота раскрытого списка */
+}
+
+.toggle-list-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0 5px;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+
+/* На мобилках (чтобы плеер встал под текст, а не в ряд) */
+@media (max-width: 900px) {
+    .hero-section {
+        flex-direction: column;
+        text-align: center;
+        margin-top: 100px;
+    }
+    .hero-text { text-align: center; }
+    .player-card { width: 100%; max-width: 400px; }
+}
+
+/* ГЛАВНЫЙ КОНТЕЙНЕР ФУТЕРА */
+.footer-glass {
+    /* 1. Сбрасываем все соседние блоки (чтобы не стоял рядом с треками) */
+    clear: both; 
+    display: block;
+    position: relative;
+    
+    /* 2. Позиционирование в самом низу */
+    width: 100%;
+    margin-top: 150px; /* Отступ от треков сверху */
+    padding: 80px 0 40px;
+    
+    /* 3. Стилистика */
+    background: rgba(10, 10, 10, 0.98);
+    backdrop-filter: blur(25px);
+    border-top: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+/* КОНТЕЙНЕР ДЛЯ ЦЕНТРИРОВКИ КОНТЕНТА */
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 5%;
+    display: flex;
+    justify-content: space-between; /* Бренд слева, ссылки справа */
+    align-items: flex-start;
+}
+
+/* ЛЕВАЯ ЧАСТЬ (БРЕНД) */
+.footer-brand {
+    flex: 1;
+}
+
+.footer-logo {
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: 12px;
+    margin: 0 0 10px 0;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.footer-tagline {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+/* ПРАВАЯ ЧАСТЬ (ССЫЛКИ) */
+.footer-nav {
+    display: flex;
+    gap: 100px; /* Расстояние между LINKS и SOCIAL */
+}
+
+
+.footer-col h4 {
+    color: #ff000067;
+    font-size: 0.8rem;
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+    font-weight: 800;
+}
+
+.footer-col a {
+    display: block;
+    text-decoration: none;
+    color: #fff !important;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+    transition: 0.3s ease;
+    letter-spacing: 1px;
+}
+
+.footer-col a:hover {
+    opacity: 1;
+    color: #ff000067 !important;
+    transform: translateX(5px); /* Легкий сдвиг при наведении */
+}
+
+/* НИЖНЯЯ ЛИНИЯ */
+.footer-bottom {
+    width: 100%;
+    max-width: 1200px;
+    margin: 60px auto 0;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.2);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+}
+/* Кнопка Play по центру */
+.controls {
+    display: flex;            /* Выстраивает кнопки в ряд */
+    align-items: center;      /* Центрирует по вертикали */
+    justify-content: center;  /* Центрирует по горизонтали */
+    gap: 30px;                /* Расстояние между кнопками */
+    margin: 20px 0;           /* Отступ сверху и снизу */
+}
+.controls button:not(#play-btn) {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5); /* Полупрозрачный белый */
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.controls button:hover {
+    color: white;
+    transform: scale(1.1);
+}
+.nav-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: 0.3s;
+}
+
+.nav-btn:hover {
+    opacity: 1;
+}
+
+#play-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: white;
+    color: black;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Большая обложка в шапке плеера */
+.main-cover {
+    width: 200px; /* Можешь сделать больше, если хочешь */
+    height: 200px;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    background-color: #222; /* Заглушка, если нет фото */
+}
+
+/* Маленькие обложки в списке */
+.mini-track {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.track-img {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+}
+
+.track-name h4 {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+
+
+    </style>
+</head>
+<body class="paused-mode">
+
+    <div class="bg-glow"></div>
+
+    <nav>
+        
+        <div class="nav-links">
+            <a href="#player">Music</a>
+            <a href="#biography" class="bio-btn">Biography</a>
+            <a href="#merch">Merch</a>
+            <a href="#tour">Tour</a>
+            <a href="#" class="logo">The Weeknd</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="hero-text">
+            <h1>Hurry Up<br>Tomorrow</h1>
+            <p>Узнайте самое интересное про альбом The Weeknd и послушайте его онлайн прямо на сайте!</p>
+        </div>
+        <main class="hero-section">
+    <!-- Текст слева -->
+
+    <!-- Плеер справа -->
+    <div class="player-card" id="player">
+        <div class="player-header">
+            <div class="main-cover" id="main-cover" style="background-image: url('');"></div>
+            <div class="main-info">
+                <h2 id="main-title">Select a track</h2>
+                <p>The Weeknd</p>
+            </div>
+    </div>
+        <div class="controls">
+        <button class="nav-btn" onclick="changeTrack(-1)">⏮</button>
+        <button id="play-btn" onclick="togglePlay()">▶</button>
+        <button class="nav-btn" onclick="changeTrack(1)">⏭</button>
+        </div>
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <!-- Кнопка для развертывания списка -->
+        <button class="toggle-list-btn" onclick="togglePlaylist()">
+            <span>Playlist</span>
+            <i id="list-arrow">▼</i>
+        </button>
+
+        <!-- Обертка списка, которая будет скрываться -->
+        <div class="playlist-wrapper" id="playlist-wrapper">
+            <div class="mini-playlist">
+                <div class="mini-track" onclick="selectTrack('1.mp3', this)">
+                <div class="track-img" style="background-image: url('unnamed.jpg');"></div>
+                <div class="track-name"><h4>Blinding Lights</h4></div>
+            </div>
+
+            <!-- ТРЕК 2 -->
+            <div class="mini-track" onclick="selectTrack('2.mp3', this)">
+                <div class="track-img" style="background-image: url('aaa.jpg');"></div>
+                <div class="track-name"><h4>Starboy</h4></div>
+            </div>
+
+            <!-- ТРЕК 3 -->
+            <div class="mini-track" onclick="selectTrack('3.mp3', this)">
+                <div class="track-img" style="background-image: url('bbb.png');"></div>
+                <div class="track-name"><h4>The Hills</h4></div>
+            </div>
+
+            <!-- ТРЕК 4 -->
+            <div class="mini-track" onclick="selectTrack('4.mp3', this)">
+                <div class="track-img" style="background-image: url('iii.jpg');"></div>
+                <div class="track-name"><h4>Save Your Tears</h4></div>
+            </div>
+
+            <!-- ТРЕК 5 -->
+            <div class="mini-track" onclick="selectTrack('5.mp3', this)">
+                <div class="track-img" style="background-image: url('679a80f\ \(1\).jpg');"></div>
+                <div class="track-name"><h4>Timeless</h4></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+        
+    </main>
+    <section class="bottom-section">
+    <div class="glass-panel reveal ">
+        <div class="info-side">
+            <h2>Последние новости</h2>
+            <p>The Weeknd намекнул, что Hurry Up Tomorrow может стать последним альбомом под его сценическим псевдонимом, и рассказал, что он был частично вдохновлен потерей голоса во время тура в 2022 году. Записан для американского психологического триллера 2025 года с таким же названием «Последнее завтра».</p>
+    </div>
+    <audio id="audio" src="trec.mp3" loop></audio>
+    <div class="video-placeholder">
+    <video id="bg-video" loop muted playsinline autoplay src="cl2.mp4"></video>
+</div>
+</section>
+
+
+    </section>
+<section class="bio-section" id="biography">
+    <div class="glass-panel bio-card reveal">
+        <div class="info-side">
+            <h3 class="bio-title">THE WEEKND: Биография</h3>
+            <p class="bio-text">
+                The Weeknd — первый артист в истории, достигший <b>100 миллионов слушателей на Spotify</b>, а его хит <b>Blinding Lights</b> признан самой популярной песней всех времен. Уникальность Эйбела в том, что он не знает нотной грамоты и не играет на инструментах, создавая свои сложнейшие мелодии <b>исключительно на слух.</b> The Weeknd признавался, что <b>его творчество — это не просто музыка, а «один большой фильм».</b> Каждый его альбом вдохновлен культовым кино: например, красный пиджак и бинты эры After Hours — это дань уважения триллерам «Казино» Скорсезе и «Неограненные алмазы», а мрачная эстетика Hurry Up Tomorrow отсылает к психологическому сюрреализму.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="merch-section" id="merch">
+    <div class="merch-container reveal">
+        <h2 class="merch-title">OFFICIAL MERCH</h2>
+        
+        <div class="merch-grid">
+            <!-- КАРТОЧКА 1 -->
+            <div class="merch-card">
+                <div class="product-img">
+                    <img src="xy1.jpg" alt="merch">
+                    
+                </div>
+                <div class="product-info">
+                    <h4 class="product-name">X'O Limited Hoodie</h4>
+                    <p class="product-price">90$</p>
+                    <button class="buy-btn">В корзину</button>
+                </div>
+            </div>
+
+            <!-- КАРТОЧКА 2 -->
+            <div class="merch-card">
+                <div class="product-img">
+                    <img src="ts3.jpg" alt="merch">
+                </div>
+                <div class="product-info">
+                    <h4 class="product-name">Vlone x X'O t-shirt</h4>
+                    <p class="product-price">65$</p>
+                    <button class="buy-btn">В корзину</button>
+                </div>
+            </div>
+
+            <!-- КАРТОЧКА 3 -->
+            <div class="merch-card">
+                <div class="product-img">
+                    <img src="tdasLA2bVpb9yVocRcgFHYnzX2OMdmYbiVPPxPLEdhR7cJIxjdDo6L868lXBxihrFvi1YP8_byul0YIweT-P38hE.jpg" alt="merch">
+                </div>
+                <div class="product-info">
+                    <h4 class="product-name">Tomorrow Cap</h4>
+                    <p class="product-price">50$</p>
+                    <button class="buy-btn">В корзину</button>
+                </div>
+            </div>
+
+            <!-- КАРТОЧКА 4 -->
+            <div class="merch-card">
+                <div class="product-img">
+                    <img src="in.jpg" alt="merch">
+                </div>
+                <div class="product-info">
+                    <h4 class="product-name">Jeans dawn</h4>
+                    <p class="product-price">40$</p>
+                    <button class="buy-btn">В корзину</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="tour-section" id="tour">
+    <div class="glass-panel tour-container reveal">
+        <h2 class="merch-title">WORLD TOUR 2026</h2>
+        
+        <div class="tour-grid">
+            <!-- ГОРОД 1 -->
+            <div class="tour-item">
+                <div class="tour-date">12 APR</div>
+                <div class="tour-city">
+                    <h4>LOS ANGELES, CA</h4>
+                    <p>SoFi Stadium</p>
+                </div>
+                <a href="javascript:void(0)" class="ticket-btn">Tickets</a>
+            </div>
+
+            <!-- ГОРОД 2 -->
+            <div class="tour-item">
+                <div class="tour-date">25 APR</div>
+                <div class="tour-city">
+                    <h4>LONDON, UK</h4>
+                    <p>Wembley Stadium</p>
+                </div>
+                <a href="javascript:void(0)" class="ticket-btn">Tickets</a>
+            </div>
+
+            <!-- ГОРОД 3 -->
+            <div class="tour-item">
+                <div class="tour-date">08 MAY</div>
+                <div class="tour-city">
+                    <h4>PARIS, FR</h4>
+                    <p>Stade de France</p>
+                </div>
+                <a href="javascript:void(0)" class="ticket-btn sold-out">Sold Out</a>
+            </div>
+
+            <!-- ГОРОД 4 -->
+            <div class="tour-item">
+                <div class="tour-date">21 MAY</div>
+                <div class="tour-city">
+                    <h4>TOKYO, JP</h4>
+                    <p>Tokyo Dome</p>
+                </div>
+                <a href="javascript:void(0)" class="ticket-btn">Tickets</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+    <!-- ИСПРАВЛЕННЫЙ ФУТЕР -->
+<footer class="footer-glass reveal" id="support">
+    <div class="footer-container">
+        
+        <!-- Левая часть: Брендинг -->
+        <div class="footer-brand">
+            <h2 class="footer-logo">THE WEEKND</h2>
+            <p class="footer-tagline">HURRY UP TOMORROW — THE FINAL CHAPTER.</p>
+        </div>
+        
+        <!-- Правая часть: Навигация -->
+        <div class="footer-nav">
+            <!-- Колонка со ссылками -->
+            <div class="footer-col">
+                <h4>LINKS</h4>
+                <a href="#music">MUSIC</a>
+                <a href="#tour">TOUR</a>
+                <a href="#merch">MERCH</a>
+            </div>
+            
+            <!-- Колонка с соцсетями -->
+            <div class="footer-col">
+                <h4>SOCIAL</h4>
+                <a href="https://instagram.com" target="_blank">INSTAGRAM</a>
+                <a href="https://spotify.com" target="_blank">SPOTIFY</a>
+                <a href="https://youtube.com" target="_blank">YOUTUBE</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Нижняя строка с копирайтом -->
+    <div class="footer-bottom">
+        &copy; 2026 ABEL TESFAYE. DESIGNED FOR XO.
+    </div>
+</footer>
+
+    
+    <script>
+    const audio = document.getElementById('audio');
+const playBtn = document.getElementById('play-btn');
+const mainCover = document.getElementById('main-cover');
+const mainTitle = document.getElementById('main-title');
+const progressBar = document.getElementById('progress-bar');
+
+// 1. ВЫБОР ТРЕКА ИЗ СПИСКА
+function selectTrack(file, element) {
+    if (audio.src.includes(file)) {
+        togglePlay();
+    } else {
+        audio.src = file;
+        audio.play();
+        
+        // Синхронизируем обложку и название
+        mainCover.style.backgroundImage = element.querySelector('.track-img').style.backgroundImage;
+        mainTitle.innerText = element.querySelector('h4').innerText;
+        
+        // Подсветка в списке
+        document.querySelectorAll('.mini-track').forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
+        
+        updateUI();
+    }
+}
+
+// 2. ГЛАВНАЯ КНОПКА PLAY
+function togglePlay() {
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('play-btn');
+
+    // Проверяем: если в аудио нет файла (пустой src)
+    if (!audio.src || audio.src === "" || audio.src.includes('undefined')) {
+        // Находим ПЕРВЫЙ трек в списке и эмулируем нажатие на него
+        const firstTrack = document.querySelector('.mini-track');
+        if (firstTrack) {
+            firstTrack.click(); // Это запустит функцию selectTrack для 1-й песни
+            return;
+        }
+    }
+
+    // Если музыка уже выбрана — просто переключаем паузу/плей
+    if (audio.paused) {
+        audio.play();
+        playBtn.innerHTML = '⏸';
+    } else {
+        audio.pause();
+        playBtn.innerHTML = '▶';
+    }
+}
+
+
+// 3. КНОПКИ НАЗАД / ВПЕРЕД
+function changeTrack(direction) {
+    const tracks = Array.from(document.querySelectorAll('.mini-track'));
+    const current = document.querySelector('.mini-track.active');
+    let index = tracks.indexOf(current);
+    
+    if (index === -1) index = 0;
+    else index = (index + direction + tracks.length) % tracks.length;
+    
+    tracks[index].click();
+}
+
+// 4. ОБНОВЛЕНИЕ ИКОНОК И ПОЛОСКИ
+function updateUI() {
+    playBtn.innerHTML = audio.paused ? '▶' : '⏸';
+    
+    document.querySelectorAll('.mini-track').forEach(t => {
+        const icon = t.querySelector('.mini-icon');
+        icon.innerHTML = (t.classList.contains('active') && !audio.paused) ? '⏸' : '▶';
+    });
+}
+
+audio.ontimeupdate = () => {
+    if (audio.duration) {
+        progressBar.style.width = (audio.currentTime / audio.duration) * 100 + "%";
+    }
+};
+
+// Перемотка кликом по полоске
+document.getElementById('progress-container').onclick = (e) => {
+    const width = e.currentTarget.clientWidth;
+    audio.currentTime = (e.offsetX / width) * audio.duration;
+};
+
+// Автоплей следующего
+audio.onended = () => changeTrack(1);
+
+    // Плавное появление блоков при скролле
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    function togglePlaylist() {
+    const wrapper = document.getElementById('playlist-wrapper');
+    const arrow = document.getElementById('list-arrow');
+    
+    wrapper.classList.toggle('open');
+    arrow.style.transform = wrapper.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+</script>
+
+
+
+</body>
+</html>
+
